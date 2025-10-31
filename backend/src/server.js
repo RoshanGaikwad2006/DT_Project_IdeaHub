@@ -17,13 +17,28 @@ dotenv.config();
 const app = express();
 
 // CORS configuration - allow dynamic localhost ports and env allowlist
-const allowlist = (process.env.FRONTEND_ORIGIN || '').split(',').map((v) => v.trim()).filter(Boolean);
+const defaultAllowed = ['https://ideahub-three.vercel.app'];
+const allowlist = [
+  ...(process.env.FRONTEND_ORIGIN || '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean),
+  ...defaultAllowed,
+];
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       const isLocalhost = /^http:\/\/localhost:\d+$/.test(origin);
-      if (isLocalhost || allowlist.includes(origin)) {
+      const urlHost = (() => {
+        try {
+          return new URL(origin).host;
+        } catch {
+          return '';
+        }
+      })();
+      const isVercel = urlHost.endsWith('.vercel.app');
+      if (isLocalhost || isVercel || allowlist.includes(origin)) {
         return callback(null, true);
       }
       return callback(new Error('Not allowed by CORS'));

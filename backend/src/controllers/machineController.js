@@ -6,7 +6,8 @@ export async function createMachine(req, res) {
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   try {
     const { name, summary, details } = req.body;
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : (req.body.imageUrl || '');
+    const origin = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const imageUrl = req.file ? `${origin}/uploads/${req.file.filename}` : (req.body.imageUrl || '');
     const machine = await Machine.create({ name, summary, details, imageUrl });
     return res.status(201).json(machine);
   } catch (err) {

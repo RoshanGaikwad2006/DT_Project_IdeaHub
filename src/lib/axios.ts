@@ -1,8 +1,14 @@
 import axios from 'axios';
 
+// Prefer env var set at build time on Vercel; fallback to Render URL; dev -> localhost
+const baseURL =
+  (import.meta.env && (import.meta.env as any).VITE_API_URL) ||
+  (typeof window !== 'undefined' && (window as any).__VITE_API_URL__) ||
+  'https://ideahub-w8zr.onrender.com/api';
+
 // Create axios instance with baseURL and credentials
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

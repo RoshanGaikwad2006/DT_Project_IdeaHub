@@ -12,7 +12,8 @@ export const createAchievement = async (req, res) => {
 
   try {
     const { title, description, date, achievedBy } = req.body;
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : (req.body.imageUrl || '');
+    const origin = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const imageUrl = req.file ? `${origin}/uploads/${req.file.filename}` : (req.body.imageUrl || '');
     const newAchievement = new Achievement({
       title,
       description,
@@ -72,7 +73,8 @@ export const updateAchievement = async (req, res) => {
     achievement.date = date || achievement.date;
     achievement.achievedBy = achievedBy || achievement.achievedBy;
     if (req.file) {
-      achievement.imageUrl = `/uploads/${req.file.filename}`;
+      const origin = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
+      achievement.imageUrl = `${origin}/uploads/${req.file.filename}`;
     } else if (typeof req.body.imageUrl === 'string') {
       achievement.imageUrl = req.body.imageUrl || achievement.imageUrl;
     }
