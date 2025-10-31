@@ -53,6 +53,29 @@ const bookingSchema = new Schema(
       type: String, // base64 data URL
       default: '',
     },
+    history: [
+      {
+        status: {
+          type: String,
+          enum: ['pending', 'approved', 'rejected'],
+          required: true,
+        },
+        reason: {
+          type: String,
+          default: '',
+          trim: true,
+        },
+        by: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+          required: false,
+        },
+        at: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );

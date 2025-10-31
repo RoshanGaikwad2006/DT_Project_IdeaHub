@@ -54,7 +54,15 @@ export async function createBooking(req, res) {
       purpose,
       description: description || '',
       teamName: teamName || '',
-      status: 'pending' // Ensure new bookings are set to pending
+      status: 'pending', // Ensure new bookings are set to pending
+      history: [
+        {
+          status: 'pending',
+          reason: '',
+          by: teamId,
+          at: new Date(),
+        },
+      ],
     });
     
     console.log('Booking created successfully:', booking);
@@ -124,10 +132,12 @@ export async function decideBooking(req, res) {
       booking.status = 'approved';
       booking.reason = reason || '';
       booking.qrCode = qrCode;
+      booking.history.push({ status: 'approved', reason: booking.reason, by: req.user._id, at: new Date() });
       await booking.save();
     } else if (decision === 'rejected') {
       booking.status = 'rejected';
       booking.reason = reason || '';
+      booking.history.push({ status: 'rejected', reason: booking.reason, by: req.user._id, at: new Date() });
       await booking.save();
     } else {
       return res.status(400).json({ message: 'Invalid decision' });
@@ -136,6 +146,54 @@ export async function decideBooking(req, res) {
     return res.status(200).json({ booking });
   } catch (err) {
     return res.status(500).json({ message: 'Failed to decide booking', error: err.message });
+  }
+}
+
+export async function getAllBookings(req, res) {
+  try {
+    // This is a coordinator-only action, so no need to filter by user
+    const bookings = await Booking.find({})
+      .sort({ createdAt: -1 })
+      .populate('team', 'name teamName');
+
+    return res.status(200).json(bookings);
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to fetch all bookings', error: err.message });
+  }
+}
+
+export async function getMyBookings(req, res) {
+  try {
+    const bookings = await Booking.find({ team: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate('team', 'name teamName'); // Populate user details if needed
+
+    return res.status(200).json(bookings);
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to fetch your bookings', error: err.message });
+  }
+}
+
+export async function getMyBookingHistory(req, res) {
+  try {
+    const bookings = await Booking.find({ team: req.user._id })
+      .select('slotDate startTime endTime purpose status reason history createdAt updatedAt')
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ bookings });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to fetch booking history', error: err.message });
+  }
+}
+
+export async function getAllBookingHistory(req, res) {
+  try {
+    const bookings = await Booking.find({})
+      .select('slotDate startTime endTime purpose status reason history team createdAt updatedAt')
+      .populate('team', 'name email teamName')
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ bookings });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to fetch all booking history', error: err.message });
   }
 }
 
@@ -169,6 +227,10 @@ export default {
   createBooking, 
   getPendingBookings, 
   decideBooking,
-  getDashboardStats 
+  getDashboardStats,
+  getMyBookings,
+  getAllBookings,
+  getMyBookingHistory,
+  getAllBookingHistory
 };
 

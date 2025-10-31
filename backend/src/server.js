@@ -3,9 +3,14 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { connectToDatabase } from './config/db.js';
+import path from 'path';
 import healthRouter from './routes/health.route.js';
 import authRouter from './routes/auth.routes.js';
 import bookingRouter from './routes/booking.routes.js';
+import eventRouter from './routes/event.routes.js';
+import achievementRouter from './routes/achievement.routes.js';
+import machineRouter from './routes/machine.routes.js';
+import productRouter from './routes/product.routes.js';
 
 dotenv.config();
 
@@ -43,6 +48,12 @@ app.use((req, _res, next) => {
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/bookings', bookingRouter);
+app.use('/api/events', eventRouter);
+app.use('/api/achievements', achievementRouter);
+app.use('/api/machines', machineRouter);
+app.use('/api/products', productRouter);
+// Static uploads
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Root route for sanity check
 app.get('/', (_req, res) => {
