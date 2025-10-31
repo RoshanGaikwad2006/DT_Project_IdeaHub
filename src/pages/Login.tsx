@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import api from "@/lib/axios";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,17 +22,7 @@ const Login = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.message || "Login failed");
-      }
+      const { data } = await api.post("/auth/login", { email, password });
 
       // Save token and user
       if (data?.token) localStorage.setItem("idea_hub_token", data.token);
@@ -45,7 +36,7 @@ const Login = () => {
         navigate("/book-slots");
       }
     } catch (err: any) {
-      toast.error(err?.message || "Login failed");
+      toast.error(err?.response?.data?.message || err?.message || "Login failed");
     }
   };
 

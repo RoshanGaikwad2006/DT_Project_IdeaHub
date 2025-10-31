@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import api from "@/lib/axios";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -29,26 +30,17 @@ const Signup = () => {
       return;
     }
     try {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role,
-          teamName: role === "team" ? formData.teamName : "",
-        }),
-        credentials: "include",
+      await api.post("/auth/signup", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role,
+        teamName: role === "team" ? formData.teamName : "",
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.message || "Signup failed");
-      }
       toast.success("Account created");
       navigate("/login");
     } catch (err: any) {
-      toast.error(err?.message || "Signup failed");
+      toast.error(err?.response?.data?.message || err?.message || "Signup failed");
     }
   };
 
